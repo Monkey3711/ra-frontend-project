@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RA Insight | Clinical AI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">RA</div><div><strong>RA Insight</strong><span>Clinical AI workspace</span></div></div>
+      <div class="nav-label">WORKSPACE</div>
+      <button class="nav-item active" data-view="severity"><span>◈</span> X-ray severity</button>
+      <button class="nav-item" data-view="progression"><span>⌁</span> Progression risk</button>
+      <div class="sidebar-bottom">
+        <div class="status-dot"></div><div><b>API connection</b><small id="sidebarApiStatus">Checking service…</small></div>
+        <button class="icon-button" id="refreshHealth" title="Refresh API status">↻</button>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">RHEUMATOID ARTHRITIS</div><h1 id="pageTitle">X-ray severity grading</h1><p id="pageSubtitle">Estimate severity from a hand/wrist X-ray image.</p></div>
+        <div class="top-actions"><span class="status-pill" id="apiStatus"><i></i> Checking API</span><button class="outline-button" id="modelInfoBtn">Model information</button></div>
+      </header>
+      <section class="notice"><span class="notice-icon">i</span><div><b>Research support tool</b><p>Predictions are model outputs for research and demonstration. They are not a medical diagnosis or a substitute for a qualified clinician.</p></div></section>
+
+      <section id="severityView" class="view">
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel-heading"><div><span class="step">01</span><h2>Upload hand/wrist X-ray</h2></div><span class="muted">Model 1</span></div>
+            <p class="helper">Choose a supported image file. The image is sent to <code>/api/model1/predict</code>.</p>
+            <form id="severityForm">
+              <label class="upload-zone" id="dropZone" for="xrayFile">
+                <input id="xrayFile" type="file" accept="image/*" required>
+                <div id="uploadPlaceholder"><div class="upload-icon">↑</div><b>Drop an X-ray image here</b><span>or click to browse files</span><small>PNG, JPG, JPEG, WEBP</small></div>
+                <img id="imagePreview" alt="Selected X-ray preview" hidden>
+              </label>
+              <div id="fileMeta" class="file-meta" hidden></div>
+              <div class="form-actions"><button class="primary-button" type="submit" id="severitySubmit">Predict severity <span>→</span></button><button class="text-button" type="button" id="clearImage">Clear</button></div>
+            </form>
+            <div class="mini-note"><span>🔒</span> Image is sent to your configured API server for inference.</div>
+          </section>
+          <section class="panel result-panel">
+            <div class="panel-heading"><div><span class="step">02</span><h2>Prediction results</h2></div><span class="muted">Output</span></div>
+            <div id="severityEmpty" class="empty-state"><div class="empty-art">✳</div><b>Your results will appear here</b><p>Upload an image and select “Predict severity” to run Model 1.</p></div>
+            <div id="severityResult" hidden>
+              <div class="prediction-card"><span class="result-label">PREDICTED SEVERITY</span><div class="prediction-main"><strong id="severityClass">—</strong><span class="confidence" id="severityConfidence">—</span></div><div class="progress-track"><div id="severityConfidenceBar"></div></div><small id="severityMessage">Model prediction</small></div>
+              <div class="result-subheading">Class probabilities</div><div id="probabilityList" class="probability-list"></div>
+              <div class="result-metrics" id="severityMeta"></div>
+              <div id="explanationArea" class="explanation-area" hidden><b>Model explanation</b><div id="explanationContent"></div></div>
+            </div>
+            <div id="severityError" class="error-box" hidden></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="progressionView" class="view" hidden>
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel-heading"><div><span class="step">01</span><h2>Clinical & serological data</h2></div><span class="muted">Model 2</span></div>
+            <p class="helper">Enter baseline values used by your trained pipeline. Keep units consistent with training data.</p>
+            <form id="progressionForm">
+              <div class="form-grid">
+                <label>Patient ID <input name="patient_id" placeholder="e.g. RA-001"></label>
+                <label>Age (years) <input name="age" type="number" min="0" max="120" placeholder="e.g. 52" required></label>
+                <label>Gender <select name="gender" required><option value="">Select gender</option><option value="Female">Female</option><option value="Male">Male</option><option value="Other">Other</option></select></label>
+                <label>Disease duration (years) <input name="disease_duration" type="number" min="0" step="any" placeholder="e.g. 3.5" required></label>
+                <label>RF (IU/mL) <input name="rf" type="number" min="0" step="any" placeholder="RF value" required></label>
+                <label>Anti-CCP (U/mL) <input name="anti_ccp" type="number" min="0" step="any" placeholder="Anti-CCP value" required></label>
+                <label>ESR (mm/hr) <input name="esr" type="number" min="0" step="any" placeholder="ESR value" required></label>
+                <label>CRP (mg/L) <input name="crp" type="number" min="0" step="any" placeholder="CRP value" required></label>
+                <label>Tender joint count <input name="tender_joint_count" type="number" min="0" step="1" placeholder="0–28" required></label>
+                <label>Swollen joint count <input name="swollen_joint_count" type="number" min="0" step="1" placeholder="0–28" required></label>
+              </div>
+              <div class="form-actions"><button class="primary-button" type="submit" id="progressionSubmit">Predict progression risk <span>→</span></button><button class="text-button" type="reset">Reset fields</button></div>
+            </form>
+          </section>
+          <section class="panel result-panel">
+            <div class="panel-heading"><div><span class="step">02</span><h2>Progression risk</h2></div><span class="muted">Output</span></div>
+            <div id="progressionEmpty" class="empty-state"><div class="empty-art">⌁</div><b>Risk estimate will appear here</b><p>Submit the clinical and serological values to run Model 2.</p></div>
+            <div id="progressionResult" hidden>
+              <div class="prediction-card risk-card"><span class="result-label">PREDICTED PROGRESSION RISK</span><div class="prediction-main"><strong id="riskPercent">—</strong><span class="confidence" id="riskClass">—</span></div><div class="progress-track"><div id="riskBar"></div></div><small id="riskMessage">Model prediction</small></div>
+              <div class="result-subheading">Prediction details</div><div id="riskDetails" class="detail-list"></div>
+              <div class="result-subheading">Top feature contributions</div><div id="shapList" class="probability-list"></div>
+            </div>
+            <div id="progressionError" class="error-box" hidden></div>
+          </section>
+        </div>
+      </section>
+
+      <footer><span>RA Insight · Research prototype</span><span id="modelVersionFooter">Model version: checking…</span></footer>
+    </main>
+  </div>
+  <div class="modal-backdrop" id="infoModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="infoTitle"><div class="modal-heading"><div><span class="eyebrow">SERVICE DETAILS</span><h2 id="infoTitle">Model information</h2></div><button class="icon-button" id="closeModal" aria-label="Close">×</button></div><div id="modelInfoContent" class="model-info-content"><p>Loading model information…</p></div><button class="primary-button modal-close-button" id="closeModalBottom">Close</button></section>
+  </div>
+  <script src="config.js"></script><script src="app.js"></script>
+</body>
+</html>
